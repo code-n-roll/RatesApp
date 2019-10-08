@@ -7,6 +7,13 @@
     android:layout_height="wrap_content"
     android:padding="8dp">
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
     <ImageView
         android:id="@+id/countryFlag"
         android:layout_width="wrap_content"
@@ -43,11 +50,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:text="1183.06"
         android:inputType="numberDecimal"/>
-
-    <android.support.constraint.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
 </androidx.constraintlayout.widget.ConstraintLayout>

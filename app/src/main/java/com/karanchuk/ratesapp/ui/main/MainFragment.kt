@@ -7,15 +7,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.karanchuk.ratesapp.R
+import com.karanchuk.ratesapp.di.Injectable
+import javax.inject.Inject
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), Injectable {
 
     companion object {
         fun newInstance() = MainFragment()
     }
+
+    @Inject
+    lateinit var vmFactory: ViewModelProvider.Factory
 
     private lateinit var viewModel: MainViewModel
     private lateinit var rateListRecycler: RecyclerView
@@ -29,14 +35,9 @@ class MainFragment : Fragment() {
         return inflater.inflate(R.layout.main_fragment, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-
-        viewModel.getRates().observe(this, Observer<List<RateUI>> { rates ->
-            rateListAdapter.setRates(rates)
-            rateListAdapter.notifyDataSetChanged()
-        })
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProviders.of(this, vmFactory)[MainViewModel::class.java]
 
         viewManager = LinearLayoutManager(context)
         rateListAdapter = RateListAdapter(emptyList())
@@ -47,5 +48,10 @@ class MainFragment : Fragment() {
                 adapter = rateListAdapter
             }
         }
+
+        viewModel.rates.observe(this, Observer<List<RateUI>> { rates ->
+            rateListAdapter.setRates(rates)
+            rateListAdapter.notifyDataSetChanged()
+        })
     }
 }

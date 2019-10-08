@@ -31,6 +31,7 @@ class RateListAdapter(
 
         fun bind(rateUI: RateUI) {
             itemView.inputCurrencyAmount.setText(rateUI.amount)
+            itemView.currencyCode.text = rateUI.currencyCode
         }
     }
 }
