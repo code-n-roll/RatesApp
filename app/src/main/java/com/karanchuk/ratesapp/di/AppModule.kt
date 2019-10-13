@@ -1,7 +1,11 @@
 package com.karanchuk.ratesapp.di
 
+import android.app.Application
+import com.google.gson.Gson
 import com.karanchuk.ratesapp.BuildConfig
+import com.karanchuk.ratesapp.R
 import com.karanchuk.ratesapp.api.RevolutApi
+import com.karanchuk.ratesapp.ui.main.Currencies
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -9,9 +13,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 import javax.inject.Singleton
 
-@Module(includes = [ViewModelModule::class])
+@Module
 class AppModule {
 
     companion object {
@@ -37,5 +42,28 @@ class AppModule {
             .client(httpClient)
             .build()
             .create(RevolutApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return Gson()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurrencies(gson: Gson, app: Application): Currencies {
+        val hashMapType = HashMap<String, String>()::class.java
+        val codeToNameJson = app.resources.openRawResource(R.raw.currency_code_to_name)
+            .bufferedReader()
+            .use { it.readText() }
+        val codeToName = gson.fromJson(codeToNameJson, hashMapType)
+
+        val codeToFlagImageJson = app.resources.openRawResource(R.raw.currency_code_to_flag_image)
+            .bufferedReader()
+            .use { it.readText() }
+        val codeToFlagImage = gson.fromJson(codeToFlagImageJson, hashMapType)
+
+        return Currencies(codeToName, codeToFlagImage)
     }
 }

@@ -1,7 +1,7 @@
 package com.karanchuk.ratesapp.ui.main
 
 data class RateUI(
-    val amount: String,
-    val currencyCode: String,
-    val currencyName: String
+    var amount: String,
+    var currencyCode: String,
+    var currencyName: String
 )
