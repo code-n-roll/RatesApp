@@ -43,7 +43,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:text="US Dollar"/>
 
-    <com.karanchuk.ratesapp.ui.main.ClearFocusEditText
+    <com.karanchuk.ratesapp.presentation.rates.ClearFocusEditText
         android:id="@+id/currency_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

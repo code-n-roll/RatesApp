@@ -1,4 +1,4 @@
-package com.karanchuk.ratesapp.ui.main
+package com.karanchuk.ratesapp.presentation.rates
 
 import android.content.Context
 import android.os.Bundle
@@ -13,21 +13,22 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.karanchuk.ratesapp.R
+import com.karanchuk.ratesapp.data.Currencies
 import com.karanchuk.ratesapp.di.Injectable
 import javax.inject.Inject
 
-class MainFragment : Fragment(), Injectable {
+class RatesFragment : Fragment(), Injectable {
 
     companion object {
-        fun newInstance() = MainFragment()
+        fun newInstance() = RatesFragment()
     }
 
     @Inject lateinit var vmFactory: ViewModelProvider.Factory
     @Inject lateinit var currencies: Currencies
 
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: RatesViewModel
     private lateinit var rateListRecycler: RecyclerView
-    private lateinit var rateListAdapter: RateListAdapter
+    private lateinit var ratesListAdapter: RatesListAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
 
     private val currencyValueFocusListener = View.OnFocusChangeListener { view, hasFocus ->
@@ -48,12 +49,12 @@ class MainFragment : Fragment(), Injectable {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
+        return inflater.inflate(R.layout.fragment_rates, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this, vmFactory)[MainViewModel::class.java]
+        viewModel = ViewModelProviders.of(this, vmFactory)[RatesViewModel::class.java]
 
         setupFragment()
         bindViewModel()
@@ -64,7 +65,7 @@ class MainFragment : Fragment(), Injectable {
 
     private fun setupFragment() {
         viewManager = LinearLayoutManager(context)
-        rateListAdapter = RateListAdapter(
+        ratesListAdapter = RatesListAdapter(
             currencyValueFocusListener,
             viewModel::updateCurrentBaseRate,
             viewModel::pauseTimer,
@@ -75,15 +76,15 @@ class MainFragment : Fragment(), Injectable {
         activity?.let {
             rateListRecycler = it.findViewById<RecyclerView>(R.id.ratesRecyclerView).apply {
                 layoutManager = viewManager
-                adapter = rateListAdapter
+                adapter = ratesListAdapter
             }
         }
     }
 
     private fun bindViewModel() {
         viewModel.rates.observe(this, Observer<List<RateUI>> { rates ->
-            rateListAdapter.updateRates(rates)
-            rateListAdapter.notifyDataSetChanged()
+            ratesListAdapter.updateRates(rates)
+            ratesListAdapter.notifyDataSetChanged()
         })
     }
 }

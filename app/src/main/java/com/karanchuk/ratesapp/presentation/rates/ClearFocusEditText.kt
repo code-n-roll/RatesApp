@@ -1,4 +1,4 @@
-package com.karanchuk.ratesapp.ui.main
+package com.karanchuk.ratesapp.presentation.rates
 
 import android.content.Context
 import android.util.AttributeSet
@@ -28,9 +28,9 @@ class ClearFocusEditText: EditText {
         lengthBefore: Int,
         lengthAfter: Int
     ) {
+        super.onTextChanged(text, start, lengthBefore, lengthAfter)
         text?.also {
             setSelection(text.length)
         }
-        super.onTextChanged(text, start, lengthBefore, lengthAfter)
     }
 }

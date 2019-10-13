@@ -1,6 +1,6 @@
 package com.karanchuk.ratesapp.di
 
-import com.karanchuk.ratesapp.ui.main.MainFragment
+import com.karanchuk.ratesapp.presentation.rates.RatesFragment
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
@@ -8,5 +8,5 @@ import dagger.android.ContributesAndroidInjector
 abstract class FragmentModule {
 
     @ContributesAndroidInjector
-    abstract fun contributeMainFragment(): MainFragment
+    abstract fun contributeRatesFragment(): RatesFragment
 }

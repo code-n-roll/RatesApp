@@ -1,10 +1,10 @@
-package com.karanchuk.ratesapp.ui.main
+package com.karanchuk.ratesapp.presentation.rates
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.karanchuk.ratesapp.common.Utils
-import com.karanchuk.ratesapp.repository.RevolutRepositoryImpl
+import com.karanchuk.ratesapp.domain.common.Utils
+import com.karanchuk.ratesapp.data.repository.RevolutRepositoryImpl
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -19,11 +19,10 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
-class MainViewModel @Inject constructor(
+class RatesViewModel @Inject constructor(
     private val repository: RevolutRepositoryImpl
 ) : ViewModel(), CoroutineScope {
 
-    // Job should be initialized before others its dependencies
     private val viewModelJob = Job()
     private val _rates: MutableLiveData<List<RateUI>> by lazy {
         MutableLiveData<List<RateUI>>().also {
@@ -32,10 +31,9 @@ class MainViewModel @Inject constructor(
     }
     internal val rates: LiveData<List<RateUI>> = _rates
     private val timer = Observable.interval(1, 1, TimeUnit.SECONDS)
+    private lateinit var timerDisposable: Disposable
     private val compositeDisposable = CompositeDisposable()
     private var currentBaseRate = RateUI("1", "USD", "US Dollar")
-
-    private lateinit var timerDisposable: Disposable
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + viewModelJob
@@ -47,7 +45,6 @@ class MainViewModel @Inject constructor(
     }
 
     private fun loadRates() {
-        // TODO: do an async operation to fetch rates
         launch {
             try {
                 val rates = repository.requestRates(currentBaseRate.currencyCode)

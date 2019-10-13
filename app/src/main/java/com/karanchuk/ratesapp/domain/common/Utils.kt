@@ -1,6 +1,6 @@
-package com.karanchuk.ratesapp.common
+package com.karanchuk.ratesapp.domain.common
 
-import com.karanchuk.ratesapp.ui.main.RateUI
+import com.karanchuk.ratesapp.presentation.rates.RateUI
 
 object Utils {
 

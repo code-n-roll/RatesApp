@@ -1,4 +1,4 @@
-package com.karanchuk.ratesapp.ui.main
+package com.karanchuk.ratesapp.presentation.rates
 
 data class RateUI(
     var amount: String,

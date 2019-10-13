@@ -1,4 +1,4 @@
-package com.karanchuk.ratesapp.ui.main
+package com.karanchuk.ratesapp.presentation.rates
 
 import android.content.Context
 import android.text.Editable
@@ -12,18 +12,19 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.karanchuk.ratesapp.R
-import com.karanchuk.ratesapp.common.Utils
+import com.karanchuk.ratesapp.data.Currencies
+import com.karanchuk.ratesapp.domain.common.Utils
 import kotlinx.android.synthetic.main.item_rate.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-class RateListAdapter(
+class RatesListAdapter(
     private val currencyValueFocusListener: View.OnFocusChangeListener,
     private val setCurrentBaseRate: (RateUI) -> Unit,
     private val pauseTimer: () -> Unit,
     private val resumeTimer: () -> Unit,
     private val currencies: Currencies
-) : RecyclerView.Adapter<RateListAdapter.RateViewHolder>() {
+) : RecyclerView.Adapter<RatesListAdapter.RateViewHolder>() {
 
     private val rates: ArrayList<RateUI> = ArrayList()
     private val savedRates = ArrayList<RateUI>()

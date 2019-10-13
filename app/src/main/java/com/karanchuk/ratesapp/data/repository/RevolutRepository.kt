@@ -1,8 +1,8 @@
-package com.karanchuk.ratesapp.repository
+package com.karanchuk.ratesapp.data.repository
 
-import com.karanchuk.ratesapp.api.RatesApi
-import com.karanchuk.ratesapp.api.RevolutApi
-import com.karanchuk.ratesapp.ui.main.RateUI
+import com.karanchuk.ratesapp.data.api.RatesApi
+import com.karanchuk.ratesapp.data.api.RevolutApi
+import com.karanchuk.ratesapp.presentation.rates.RateUI
 import kotlinx.coroutines.*
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext

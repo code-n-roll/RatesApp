@@ -14,7 +14,7 @@
         android:name=".RatesApp">
 
         <activity
-            android:name=".MainActivity">
+            android:name=".presentation.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <action android:name="android.intent.action.MAIN" />

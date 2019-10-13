@@ -1,4 +1,4 @@
-package com.karanchuk.ratesapp.api
+package com.karanchuk.ratesapp.data.api
 
 import retrofit2.Call
 import retrofit2.http.GET
