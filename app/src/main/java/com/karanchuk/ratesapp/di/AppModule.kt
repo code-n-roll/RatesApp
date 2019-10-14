@@ -4,8 +4,8 @@ import android.app.Application
 import com.google.gson.Gson
 import com.karanchuk.ratesapp.BuildConfig
 import com.karanchuk.ratesapp.R
-import com.karanchuk.ratesapp.data.api.RevolutApi
 import com.karanchuk.ratesapp.data.Currencies
+import com.karanchuk.ratesapp.data.api.RevolutApi
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient

@@ -30,10 +30,10 @@ class RatesViewModel @Inject constructor(
         }
     }
     internal val rates: LiveData<List<RateUI>> = _rates
-    private val timer = Observable.interval(1, 1, TimeUnit.SECONDS)
+    private val timer = Observable.interval(0, 1, TimeUnit.SECONDS)
     private lateinit var timerDisposable: Disposable
     private val compositeDisposable = CompositeDisposable()
-    private var currentBaseRate = RateUI("1", "USD", "US Dollar")
+    private var currentBaseRate = RateUI("1", "USD", "United States Dollar")
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + viewModelJob
@@ -51,14 +51,7 @@ class RatesViewModel @Inject constructor(
                 val ratesLinkedList = LinkedList<RateUI>(rates)
                 ratesLinkedList.addFirst(currentBaseRate)
 
-                for ((i, rate) in ratesLinkedList.withIndex()) {
-                    if (i != 0) {
-                        val rateAmountPerOne = rate.amount.toDouble()
-                        val count = currentBaseRate.amount.toDouble()
-                        ratesLinkedList[i].amount = (count * rateAmountPerOne).toString()
-                    }
-                }
-
+                Utils.convertRatesBy(ratesLinkedList, currentBaseRate.amount.toDouble())
                 Utils.roundRateAmounts(ratesLinkedList)
 
                 _rates.postValue(ratesLinkedList)

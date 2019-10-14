@@ -29,8 +29,8 @@ class ClearFocusEditText: EditText {
         lengthAfter: Int
     ) {
         super.onTextChanged(text, start, lengthBefore, lengthAfter)
-        text?.also {
-            setSelection(text.length)
+        text?.apply {
+            setSelection(this.length)
         }
     }
 }
