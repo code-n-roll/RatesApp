@@ -15,7 +15,10 @@ import com.karanchuk.ratesapp.R
 import com.karanchuk.ratesapp.data.Currencies
 import com.karanchuk.ratesapp.di.Injectable
 import com.karanchuk.ratesapp.domain.common.Utils
+import com.karanchuk.ratesapp.domain.common.gone
 import com.karanchuk.ratesapp.domain.common.livedata.LiveEvent
+import com.karanchuk.ratesapp.domain.common.visible
+import kotlinx.android.synthetic.main.fragment_rates.*
 import javax.inject.Inject
 
 class RatesFragment : Fragment(), Injectable {
@@ -67,18 +70,31 @@ class RatesFragment : Fragment(), Injectable {
         )
 
         activity?.let {
-            ratesListRecycler = it.findViewById<RecyclerView>(R.id.ratesRecyclerView).apply {
+            ratesListRecycler = it.findViewById<RecyclerView>(R.id.rates_recycler_view).apply {
                 layoutManager = viewManager
                 adapter = ratesListAdapter
             }
         }
 
         networkStateSnackbar = createNetworkStateSnackbar()
+
+        progress.visible()
+        rates_recycler_view.gone()
+        error.gone()
     }
 
     private fun bindViewModel() {
-        viewModel.rates.observe(this, Observer<List<RateUI>> { rates ->
-            ratesListAdapter.updateRates(rates)
+        viewModel.rates.observe(this, Observer<List<RateUI>?> { rates ->
+            if (rates != null ) {
+                ratesListAdapter.updateRates(rates)
+                error.gone()
+                progress.gone()
+                rates_recycler_view.visible()
+            } else {
+                progress.gone()
+                rates_recycler_view.gone()
+                error.visible()
+            }
         })
         viewModel.networkLiveData.observe(this, Observer<LiveEvent<Boolean>> {
             it.getContentIfNotHandled()?.let { isOnline ->

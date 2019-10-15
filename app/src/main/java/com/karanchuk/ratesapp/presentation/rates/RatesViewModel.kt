@@ -66,6 +66,7 @@ class RatesViewModel @Inject constructor(
                 _rates.postValue(ratesLinkedList)
             } catch (e: Throwable) {
                 e.printStackTrace()
+                _rates.postValue(null)
             }
         }
     }

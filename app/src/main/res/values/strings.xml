@@ -5,4 +5,5 @@
     <string name="base_currency_name">United States Dollar</string>
     <string name="base_currency_amount">1</string>
     <string name="currency_value_hint">0</string>
+    <string name="error">Some error is happened</string>
 </resources>
