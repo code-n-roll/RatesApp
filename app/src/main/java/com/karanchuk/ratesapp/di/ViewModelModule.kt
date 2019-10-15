@@ -12,10 +12,10 @@ import dagger.multibindings.IntoMap
 abstract class ViewModelModule {
 
     @Binds
+    abstract fun bindViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
+
+    @Binds
     @IntoMap
     @ViewModelKey(RatesViewModel::class)
     abstract fun bindRatesViewModel(viewModel: RatesViewModel): ViewModel
-
-    @Binds
-    abstract fun bindViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
 }

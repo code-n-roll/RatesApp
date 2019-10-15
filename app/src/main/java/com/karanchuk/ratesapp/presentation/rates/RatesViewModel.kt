@@ -1,10 +1,12 @@
 package com.karanchuk.ratesapp.presentation.rates
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.karanchuk.ratesapp.domain.common.Utils
 import com.karanchuk.ratesapp.data.repository.RevolutRepositoryImpl
+import com.karanchuk.ratesapp.domain.common.Utils
+import com.karanchuk.ratesapp.domain.common.livedata.NetworkLiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -20,18 +22,22 @@ import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 class RatesViewModel @Inject constructor(
-    private val repository: RevolutRepositoryImpl
+    private val repository: RevolutRepositoryImpl,
+    val networkLiveData: NetworkLiveData
 ) : ViewModel(), CoroutineScope {
+
+    companion object {
+        private const val TAG = "RatesViewModel"
+    }
 
     private val viewModelJob = Job()
     private val _rates: MutableLiveData<List<RateUI>> by lazy {
-        MutableLiveData<List<RateUI>>().also {
-            loadRates()
-        }
+        MutableLiveData<List<RateUI>>()
     }
-    internal val rates: LiveData<List<RateUI>> = _rates
+    internal val rates: LiveData<List<RateUI>>
+        get() = _rates
     private val timer = Observable.interval(0, 1, TimeUnit.SECONDS)
-    private lateinit var timerDisposable: Disposable
+    private var timerDisposable: Disposable? = null
     private val compositeDisposable = CompositeDisposable()
     private var currentBaseRate = RateUI("1", "USD", "United States Dollar")
 
@@ -47,6 +53,9 @@ class RatesViewModel @Inject constructor(
     private fun loadRates() {
         launch {
             try {
+                if (currentBaseRate.amount.toDoubleOrNull() == null) {
+                    return@launch
+                }
                 val rates = repository.requestRates(currentBaseRate.currencyCode)
                 val ratesLinkedList = LinkedList<RateUI>(rates)
                 ratesLinkedList.addFirst(currentBaseRate)
@@ -62,18 +71,21 @@ class RatesViewModel @Inject constructor(
     }
 
     private fun subscribeToTimer() {
-        timerDisposable = timer
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onNext = {
-                    loadRates()
-                }
-            )
-        compositeDisposable.add(timerDisposable)
+        if (timerDisposable == null || timerDisposable?.isDisposed!!) {
+            timerDisposable = timer
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeBy(
+                    onNext = {
+                        Log.d(TAG, "Timer tick")
+                        loadRates()
+                    }
+                )
+        }
+        compositeDisposable.add(timerDisposable!!)
     }
 
     private fun unsubscribeFromTimer() {
-        compositeDisposable.remove(timerDisposable)
+        compositeDisposable.remove(timerDisposable!!)
     }
 
     internal fun resumeTimer() {

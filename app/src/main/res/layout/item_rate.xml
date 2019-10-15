@@ -40,7 +40,7 @@
         app:layout_constraintBottom_toTopOf="@id/guideline_horizontal_half_screen"
         android:textStyle="bold"
         android:textColor="@android:color/black"
-        android:text="USD" />
+        android:text="@string/base_currency_code" />
 
     <TextView
         android:id="@+id/currency_name"
@@ -50,7 +50,7 @@
         app:layout_constraintLeft_toRightOf="@id/currency_flag"
         app:layout_constraintTop_toBottomOf="@id/guideline_horizontal_half_screen"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:text="United States Dollar" />
+        android:text="@string/base_currency_name" />
 
     <com.karanchuk.ratesapp.presentation.rates.ClearFocusEditText
         android:id="@+id/currency_value"
@@ -62,12 +62,11 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constrainedWidth="true"
         app:layout_constraintHorizontal_bias="1.0"
-        android:text="1183.06"
+        android:text="@string/base_currency_amount"
         android:textStyle="bold"
-        android:hint="0"
+        android:hint="@string/currency_value_hint"
         android:inputType="numberDecimal"
         android:imeOptions="actionDone"
-        android:backgroundTint="#e0e0e0"
-        android:maxLength="10"
-        />
+        android:backgroundTint="@color/edittext_bottom_line_color"
+        android:maxLength="13" />
 </androidx.constraintlayout.widget.ConstraintLayout>

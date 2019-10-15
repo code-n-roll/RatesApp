@@ -22,10 +22,12 @@ import kotlin.collections.ArrayList
 
 class RatesListAdapter(
     private val setCurrentBaseRate: (RateUI) -> Unit,
-    private val pauseTimer: () -> Unit,
-    private val resumeTimer: () -> Unit,
     private val currencies: Currencies
 ) : RecyclerView.Adapter<RatesListAdapter.RateViewHolder>() {
+
+    companion object {
+        private const val CLICK_ACTION_THRESHOLD = 300
+    }
 
     private val rates: ArrayList<RateUI> = ArrayList()
     private val savedRates = ArrayList<RateUI>()
@@ -37,8 +39,17 @@ class RatesListAdapter(
     }
 
     fun updateRates(rates: List<RateUI>) {
-        this.rates.clear()
-        this.rates.addAll(rates)
+        if (this.rates.isEmpty()) {
+            this.rates.clear()
+            this.rates.addAll(rates)
+        } else {
+            this.rates.forEach { rateUI ->
+                val newRate = rates.find { it.currencyCode == rateUI.currencyCode}
+                if (newRate != null) {
+                    rateUI.amount = newRate.amount
+                }
+            }
+        }
         notifyItemsChangedWithPayload()
     }
 
@@ -67,7 +78,6 @@ class RatesListAdapter(
 
     inner class RateViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        private val CLICK_ACTION_THRESHHOLD = 300
         private var lastTouchDown: Long = 0
 
         private val currencyFlag: RoundedImageView = itemView.currency_flag
@@ -100,18 +110,30 @@ class RatesListAdapter(
 
                     if (rates[0].amount.isNotEmpty() && baseRateAmount.isEmpty()) {
                         savedRates.clear()
-                        savedRates.addAll(rates)
+                        rates.forEach { rate ->
+                            savedRates.add(RateUI(rate.amount, rate.currencyCode, rate.currencyName))
+                        }
 
-                        rates.clear()
-                        savedRates.forEach {
-                            rates.add(RateUI("", it.currencyCode, it.currencyName))
+                        rates.forEachIndexed { i, rateUI ->
+                            val savedRate = savedRates.find { it.currencyCode == rateUI.currencyCode}
+                            if (savedRate != null) {
+                                rateUI.currencyCode = savedRate.currencyCode
+                                rateUI.currencyName = savedRate.currencyName
+                            }
+                            rateUI.amount = ""
                         }
                         updateCurrentBaseRate(baseRateAmount)
                         notifyItemsChangedWithPayload()
                         return
                     } else if (rates[0].amount.isEmpty() && baseRateAmount.isNotEmpty()) {
-                        rates.clear()
-                        rates.addAll(savedRates)
+                        rates.forEach { rateUI ->
+                            val savedRate = savedRates.find { it.currencyCode == rateUI.currencyCode}
+                            if (savedRate != null) {
+                                rateUI.currencyCode = savedRate.currencyCode
+                                rateUI.currencyName = savedRate.currencyName
+                                rateUI.amount = savedRate.amount
+                            }
+                        }
                     } else if (rates[0].amount.isEmpty() && baseRateAmount.isEmpty()) {
                         return
                     }
@@ -135,10 +157,8 @@ class RatesListAdapter(
 
         private val currencyValueOnFocusChange = View.OnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
-                pauseTimer()
                 updateCurrentBaseRate(rates[layoutPosition])
                 swapSelectedItemAndFirst()
-                resumeTimer()
             } else {
                 hideKeyboard()
             }
@@ -147,17 +167,15 @@ class RatesListAdapter(
         private val itemViewTouchListener = View.OnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> lastTouchDown = System.currentTimeMillis()
-                MotionEvent.ACTION_UP -> if (System.currentTimeMillis() - lastTouchDown < CLICK_ACTION_THRESHHOLD) {
+                MotionEvent.ACTION_UP -> if (System.currentTimeMillis() - lastTouchDown < CLICK_ACTION_THRESHOLD) {
                     itemView.performClick()
                 }
             }
             false
         }
         private val itemViewClickListener = View.OnClickListener {
-            pauseTimer()
             updateCurrentBaseRate(rates[layoutPosition])
             swapSelectedItemAndFirst()
-            resumeTimer()
         }
 
         private fun swapSelectedItemAndFirst() {
@@ -168,14 +186,6 @@ class RatesListAdapter(
                 }
                 rates.clear()
                 rates.addAll(ratesLinkedList)
-//                if (savedRates.isNotEmpty()) {
-//                    val swapedSavedRates = LinkedList(savedRates)
-//                    swapedSavedRates.removeAt(currentPosition).also {
-//                        swapedSavedRates.addFirst(it)
-//                    }
-//                    savedRates.clear()
-//                    savedRates.addAll(swapedSavedRates)
-//                }
                 notifyItemMoved(currentPosition, 0)
             }
             focusEditTextOnSwap()
@@ -184,10 +194,11 @@ class RatesListAdapter(
         private fun focusEditTextOnSwap() {
             val recycler = (itemView.parent as RecyclerView)
             recycler.post {
-                val edittext = recycler.layoutManager!!.findViewByPosition(0)!!.currency_value
-                edittext.requestFocus()
-                edittext.setSelection(edittext.text.length)
-                showKeyboard(edittext)
+                recycler.layoutManager?.findViewByPosition(0)?.currency_value?.let {
+                    it.requestFocus()
+                    it.setSelection(it.text.length)
+                    showKeyboard(it)
+                }
             }
         }
 

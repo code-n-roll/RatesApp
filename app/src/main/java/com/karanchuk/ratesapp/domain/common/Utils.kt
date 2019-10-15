@@ -1,6 +1,10 @@
 package com.karanchuk.ratesapp.domain.common
 
+import android.content.Context
 import com.karanchuk.ratesapp.presentation.rates.RateUI
+import android.util.DisplayMetrics
+import kotlin.math.roundToInt
+
 
 object Utils {
 
@@ -26,6 +30,11 @@ object Utils {
                 rates[i].amount = (count * rateAmountPerOne).toString()
             }
         }
+    }
+
+    fun dpToPx(context: Context, dp: Int): Int {
+        val displayMetrics = context.resources.displayMetrics
+        return (dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT)).roundToInt()
     }
 }
 

@@ -1,11 +1,14 @@
 package com.karanchuk.ratesapp.di
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
 import com.google.gson.Gson
 import com.karanchuk.ratesapp.BuildConfig
 import com.karanchuk.ratesapp.R
 import com.karanchuk.ratesapp.data.Currencies
 import com.karanchuk.ratesapp.data.api.RevolutApi
+import com.karanchuk.ratesapp.domain.common.livedata.NetworkLiveData
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -42,6 +45,21 @@ class AppModule {
             .client(httpClient)
             .build()
             .create(RevolutApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideConnectivityManager(app: Application): ConnectivityManager {
+        return app.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkLiveData(
+        app: Application,
+        connectivityManager: ConnectivityManager
+    ): NetworkLiveData {
+        return NetworkLiveData(app, connectivityManager)
     }
 
     @Provides
