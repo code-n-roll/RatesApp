@@ -1,20 +1,22 @@
 package com.karanchuk.ratesapp.presentation.rates
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.karanchuk.ratesapp.R
 import com.karanchuk.ratesapp.data.Currencies
 import com.karanchuk.ratesapp.domain.common.Utils
-import com.makeramen.roundedimageview.RoundedImageView
 import kotlinx.android.synthetic.main.item_rate.view.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -80,7 +82,7 @@ class RatesListAdapter(
 
         private var lastTouchDown: Long = 0
 
-        private val currencyFlag: RoundedImageView = itemView.currency_flag
+        private val currencyFlag: ImageView = itemView.currency_flag
         private val currencyValue: ClearFocusEditText = itemView.currency_value
         private val currencyCode: TextView = itemView.currency_code
         private val currencyName: TextView = itemView.currency_name
@@ -222,12 +224,11 @@ class RatesListAdapter(
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
         }
 
-        private fun getCurrencyFlag(flagFileName: String): BitmapDrawable {
+        private fun getCurrencyFlag(flagFileName: String): Drawable {
             val context = itemView.context
             val resources = context.resources
             val flagImageId = resources.getIdentifier(flagFileName, "drawable", context.packageName)
-            val flagImageDrawable = resources.getDrawable(flagImageId)
-            return BitmapDrawable(resources, Bitmap.createScaledBitmap((flagImageDrawable as BitmapDrawable).bitmap, 235, 235, true))
+            return resources.getDrawable(flagImageId, null)
         }
 
         fun bind(rateUI: RateUI) {
