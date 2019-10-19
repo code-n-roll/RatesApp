@@ -13,4 +13,6 @@ object Utils {
     }
 }
 
+class DelayException : Exception()
+
 

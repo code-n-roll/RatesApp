@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -82,7 +83,7 @@ class RatesFragment : Fragment(), Injectable {
     }
 
     private fun bindViewModel() {
-        viewModel.rates.observe(this, Observer<List<RateUI>?> { rates ->
+        viewModel.rates.observe(viewLifecycleOwner, Observer<List<RateUI>?> { rates ->
             if (rates != null ) {
                 ratesListAdapter.updateRates(rates)
                 error.gone()
@@ -94,7 +95,7 @@ class RatesFragment : Fragment(), Injectable {
                 error.visible()
             }
         })
-        viewModel.networkLiveData.observe(this, Observer<LiveEvent<Boolean>> {
+        viewModel.networkLiveData.observe(viewLifecycleOwner, Observer<LiveEvent<Boolean>> {
             it.getContentIfNotHandled()?.let { isOnline ->
                 if (isOnline) {
                     hideNetworkStateSnackbar()
@@ -103,6 +104,11 @@ class RatesFragment : Fragment(), Injectable {
                     showNetworkStateSnackbar()
                     viewModel.pauseTimer()
                 }
+            }
+        })
+        viewModel.viewEffect.observe(viewLifecycleOwner, Observer<Boolean> { isDelayd ->
+            if (isDelayd) {
+                Toast.makeText(context, R.string.delay_in_more_one_sec, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -121,7 +127,6 @@ class RatesFragment : Fragment(), Injectable {
             ratesListRecycler.setPadding(0, 0, 0,
                 Utils.dpToPx(requireContext(), SINGLE_LINE_SNACKBAR_HEIGHT_DP))
         }
-
     }
 
     private fun hideNetworkStateSnackbar() {

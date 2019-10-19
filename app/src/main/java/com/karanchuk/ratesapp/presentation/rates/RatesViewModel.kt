@@ -8,18 +8,15 @@ import com.karanchuk.ratesapp.data.Currencies
 import com.karanchuk.ratesapp.data.repository.RevolutRepositoryImpl
 import com.karanchuk.ratesapp.domain.Rate
 import com.karanchuk.ratesapp.domain.Rates
+import com.karanchuk.ratesapp.domain.common.DelayException
 import com.karanchuk.ratesapp.domain.common.livedata.NetworkLiveData
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -39,18 +36,31 @@ class RatesViewModel @Inject constructor(
     }
     internal val rates: LiveData<List<RateUI>>
         get() = _rates
-    private val timer = Observable.interval(0, 1, TimeUnit.SECONDS)
-    private var timerDisposable: Disposable? = null
-    private val compositeDisposable = CompositeDisposable()
+    private val _viewEffect: MutableLiveData<Boolean> by lazy {
+        MutableLiveData<Boolean>()
+    }
+    internal val viewEffect: LiveData<Boolean>
+        get() = _viewEffect
+    private val tickerChannel = ticker(1_000, 0).also {
+        launch {
+            for (event in it) {
+                if (isTickerResumed) {
+                    Log.d(TAG, "Timer tick")
+                    loadRates()
+                }
+            }
+        }
+    }
     private var currentBaseRate = RateUI("1", "USD", "", "")
+    private var isTickerResumed = false
 
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + viewModelJob
+    get() = Dispatchers.Main + viewModelJob
 
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
-        compositeDisposable.clear()
+        tickerChannel.cancel()
     }
 
     private fun loadRates() {
@@ -60,6 +70,7 @@ class RatesViewModel @Inject constructor(
         launch {
             try {
                 val rates = repository.requestRates(currentBaseRate.currencyCode)
+
                 val ratesLinkedList = LinkedList<Rate>(rates)
                 ratesLinkedList.addFirst(Rate(currentBaseRate))
                 val ratesDomain = Rates(ratesLinkedList, Rate(currentBaseRate))
@@ -71,36 +82,25 @@ class RatesViewModel @Inject constructor(
                     }
                 })
             } catch (e: Throwable) {
-                e.printStackTrace()
-                _rates.postValue(null)
+                when(e) {
+                    is HttpException -> {
+                        e.printStackTrace()
+                        _rates.postValue(null)
+                    }
+                    is DelayException -> {
+                        _viewEffect.postValue(true)
+                    }
+                }
             }
         }
     }
 
-    private fun subscribeToTimer() {
-        if (timerDisposable == null || timerDisposable?.isDisposed!!) {
-            timerDisposable = timer
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeBy(
-                    onNext = {
-                        Log.d(TAG, "Timer tick")
-                        loadRates()
-                    }
-                )
-        }
-        compositeDisposable.add(timerDisposable!!)
-    }
-
-    private fun unsubscribeFromTimer() {
-        compositeDisposable.remove(timerDisposable!!)
-    }
-
     internal fun resumeTimer() {
-        subscribeToTimer()
+        isTickerResumed = true
     }
 
     internal fun pauseTimer() {
-        unsubscribeFromTimer()
+        isTickerResumed = false
     }
 
     internal fun updateCurrentBaseRate(rate: RateUI) {

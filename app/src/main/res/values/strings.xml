@@ -6,4 +6,5 @@
     <string name="base_currency_amount">1</string>
     <string name="currency_value_hint">0</string>
     <string name="error">Some error is happened</string>
+    <string name="delay_in_more_one_sec">Delay in more 1 sec!</string>
 </resources>

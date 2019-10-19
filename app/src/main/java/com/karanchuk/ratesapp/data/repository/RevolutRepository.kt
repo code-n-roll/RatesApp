@@ -3,10 +3,8 @@ package com.karanchuk.ratesapp.data.repository
 import com.karanchuk.ratesapp.data.api.RatesApi
 import com.karanchuk.ratesapp.data.api.RevolutApi
 import com.karanchuk.ratesapp.domain.Rate
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import com.karanchuk.ratesapp.domain.common.DelayException
+import kotlinx.coroutines.*
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -31,7 +29,14 @@ class RevolutRepositoryImpl @Inject constructor(
         base: String
     ): Deferred<RatesApi?> {
         return CoroutineScope(coroutineContext).async {
-            revolutApi.getRates(base).execute().body()
+            val startTime = System.currentTimeMillis()
+
+            revolutApi.getRates(base).execute().body().also {
+                val endTime = System.currentTimeMillis()
+                if (endTime - startTime > 1_000) {
+                    throw DelayException()
+                }
+            }
         }
     }
 }
