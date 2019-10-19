@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.karanchuk.ratesapp.data.Currencies
 import com.karanchuk.ratesapp.data.repository.RevolutRepositoryImpl
-import com.karanchuk.ratesapp.domain.common.Utils
+import com.karanchuk.ratesapp.domain.Rate
+import com.karanchuk.ratesapp.domain.Rates
 import com.karanchuk.ratesapp.domain.common.livedata.NetworkLiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -23,7 +25,8 @@ import kotlin.coroutines.CoroutineContext
 
 class RatesViewModel @Inject constructor(
     private val repository: RevolutRepositoryImpl,
-    val networkLiveData: NetworkLiveData
+    val networkLiveData: NetworkLiveData,
+    private var currencies: Currencies
 ) : ViewModel(), CoroutineScope {
 
     companion object {
@@ -39,7 +42,7 @@ class RatesViewModel @Inject constructor(
     private val timer = Observable.interval(0, 1, TimeUnit.SECONDS)
     private var timerDisposable: Disposable? = null
     private val compositeDisposable = CompositeDisposable()
-    private var currentBaseRate = RateUI("1", "USD", "United States Dollar")
+    private var currentBaseRate = RateUI("1", "USD", "", "")
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + viewModelJob
@@ -51,19 +54,22 @@ class RatesViewModel @Inject constructor(
     }
 
     private fun loadRates() {
+        if (currentBaseRate.amount.toDoubleOrNull() == null) {
+            return
+        }
         launch {
             try {
-                if (currentBaseRate.amount.toDoubleOrNull() == null) {
-                    return@launch
-                }
                 val rates = repository.requestRates(currentBaseRate.currencyCode)
-                val ratesLinkedList = LinkedList<RateUI>(rates)
-                ratesLinkedList.addFirst(currentBaseRate)
+                val ratesLinkedList = LinkedList<Rate>(rates)
+                ratesLinkedList.addFirst(Rate(currentBaseRate))
+                val ratesDomain = Rates(ratesLinkedList, Rate(currentBaseRate))
 
-                Utils.convertRatesBy(ratesLinkedList, currentBaseRate.amount.toDouble())
-                Utils.roundRateAmounts(ratesLinkedList)
-
-                _rates.postValue(ratesLinkedList)
+                _rates.postValue(RatesUI(ratesDomain.convertedRates).roundedRatesUI.also {
+                    it.forEach { rateUI ->
+                        rateUI.currencyName = currencies.codeToName[rateUI.currencyCode] ?: ""
+                        rateUI.flagFileName = currencies.codeToFlagImage[rateUI.currencyCode] ?: ""
+                    }
+                })
             } catch (e: Throwable) {
                 e.printStackTrace()
                 _rates.postValue(null)

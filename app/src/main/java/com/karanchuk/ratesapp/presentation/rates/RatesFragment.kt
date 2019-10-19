@@ -29,7 +29,6 @@ class RatesFragment : Fragment(), Injectable {
     }
 
     @Inject lateinit var vmFactory: ViewModelProvider.Factory
-    @Inject lateinit var currencies: Currencies
 
     private lateinit var viewModel: RatesViewModel
     private lateinit var ratesListRecycler: RecyclerView
@@ -65,8 +64,7 @@ class RatesFragment : Fragment(), Injectable {
     private fun setupFragment() {
         viewManager = LinearLayoutManager(context)
         ratesListAdapter = RatesListAdapter(
-            viewModel::updateCurrentBaseRate,
-            currencies
+            viewModel::updateCurrentBaseRate
         )
 
         activity?.let {

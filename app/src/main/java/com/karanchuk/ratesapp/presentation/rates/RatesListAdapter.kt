@@ -15,16 +15,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.karanchuk.ratesapp.R
-import com.karanchuk.ratesapp.data.Currencies
-import com.karanchuk.ratesapp.domain.common.Utils
+import com.karanchuk.ratesapp.domain.Rate
+import com.karanchuk.ratesapp.domain.Rates
 import kotlinx.android.synthetic.main.item_rate.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 
 
 class RatesListAdapter(
-    private val setCurrentBaseRate: (RateUI) -> Unit,
-    private val currencies: Currencies
+    private val setCurrentBaseRate: (RateUI) -> Unit
 ) : RecyclerView.Adapter<RatesListAdapter.RateViewHolder>() {
 
     companion object {
@@ -110,25 +109,30 @@ class RatesListAdapter(
                         text
                     }
 
-                    if (rates[0].amount.isNotEmpty() && baseRateAmount.isEmpty()) {
-                        savedRates.clear()
-                        rates.forEach { rate ->
-                            savedRates.add(RateUI(rate.amount, rate.currencyCode, rate.currencyName))
-                        }
+                    val isValueCleared = rates[0].amount.isNotEmpty() && baseRateAmount.isEmpty()
+                    val isEnteredConvertibleValue = rates[0].amount.isEmpty() && baseRateAmount.isNotEmpty()
+                    val isEnteredNonConvertibleValue = rates[0].amount.isEmpty() && baseRateAmount.isEmpty()
 
-                        rates.forEachIndexed { i, rateUI ->
-                            val savedRate = savedRates.find { it.currencyCode == rateUI.currencyCode}
-                            if (savedRate != null) {
-                                rateUI.currencyCode = savedRate.currencyCode
-                                rateUI.currencyName = savedRate.currencyName
+                    when {
+                        isValueCleared -> {
+                            savedRates.clear()
+                            rates.forEach { rate ->
+                                savedRates.add(RateUI(rate.amount, rate.currencyCode, rate.currencyName, rate.flagFileName))
                             }
-                            rateUI.amount = ""
+
+                            rates.forEach { rateUI ->
+                                val savedRate = savedRates.find { it.currencyCode == rateUI.currencyCode}
+                                if (savedRate != null) {
+                                    rateUI.currencyCode = savedRate.currencyCode
+                                    rateUI.currencyName = savedRate.currencyName
+                                }
+                                rateUI.amount = ""
+                            }
+                            updateCurrentBaseRate(baseRateAmount)
+                            notifyItemsChangedWithPayload()
+                            return
                         }
-                        updateCurrentBaseRate(baseRateAmount)
-                        notifyItemsChangedWithPayload()
-                        return
-                    } else if (rates[0].amount.isEmpty() && baseRateAmount.isNotEmpty()) {
-                        rates.forEach { rateUI ->
+                        isEnteredConvertibleValue -> rates.forEach { rateUI ->
                             val savedRate = savedRates.find { it.currencyCode == rateUI.currencyCode}
                             if (savedRate != null) {
                                 rateUI.currencyCode = savedRate.currencyCode
@@ -136,15 +140,16 @@ class RatesListAdapter(
                                 rateUI.amount = savedRate.amount
                             }
                         }
-                    } else if (rates[0].amount.isEmpty() && baseRateAmount.isEmpty()) {
-                        return
+                        isEnteredNonConvertibleValue -> return
                     }
 
-                    Utils.convertRatesBy(rates, baseRateAmount.toDouble() / rates[0].amount.toDouble())
-                    Utils.roundRateAmounts(rates)
+                    val newAmount = baseRateAmount.toDouble() / rates[0].amount.toDouble()
+                    val newRate = Rate(newAmount, rates[0].currencyCode)
+                    val newBaseRate = RateUI(newRate)
+                    val ratesDomain = Rates(rates, newBaseRate)
 
+                    updateRates(RatesUI(ratesDomain.convertedRates).roundedRatesUI)
                     updateCurrentBaseRate(baseRateAmount)
-                    notifyItemsChangedWithPayload()
                 }
             }
 
@@ -224,7 +229,7 @@ class RatesListAdapter(
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
         }
 
-        private fun getCurrencyFlag(flagFileName: String): Drawable {
+        private fun getFlagDrawableBy(flagFileName: String): Drawable {
             val context = itemView.context
             val resources = context.resources
             val flagImageId = resources.getIdentifier(flagFileName, "drawable", context.packageName)
@@ -238,10 +243,10 @@ class RatesListAdapter(
             currencyValue.addTextChangedListener(textWatcher)
 
             currencyCode.text = rateUI.currencyCode
-            currencyName.text = currencies.codeToName[rateUI.currencyCode]
+            currencyName.text = rateUI.currencyName
 
-            val flagFileName = currencies.codeToFlagImage[rateUI.currencyCode] ?: ""
-            currencyFlag.setImageDrawable(getCurrencyFlag(flagFileName))
+            val flagDrawable = getFlagDrawableBy(rateUI.flagFileName)
+            currencyFlag.setImageDrawable(flagDrawable)
 
             itemView.setOnTouchListener(itemViewTouchListener)
             itemView.setOnClickListener(itemViewClickListener)
